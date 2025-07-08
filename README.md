@@ -87,7 +87,7 @@ Continuous Integration (CI) is a development practice where developers integrate
 
 The following diagram illustrates the CI/CD pipeline architecture used in this project:
 
-![CI/CD Architecture](architecture.png)
+![CI/CD Architecture](./Diagrams/architecture.png)
 
 This architecture covers the flow from code commit to build, test, code analysis, artifact packaging, repository upload, and notifications.
 
