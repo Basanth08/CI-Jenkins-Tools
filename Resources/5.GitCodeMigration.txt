@@ -1,0 +1,13 @@
+Clone vprofile repo with branch name
+    
+    git clone -b ci-jenkins https://github.com/devopshydclub/vprofile-project.git
+    mv vprofile-project <repositoryname>
+    cd <repositoryname>
+
+Replace the remote url
+    git remote set-url origin git@github.com:imnowdevops/<repositoryname>.git
+    cat .git/config
+    git branch -c main
+    git checkout main
+    git push --all origin
+    code .
