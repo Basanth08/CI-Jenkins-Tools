@@ -144,5 +144,5 @@ The following orchestrated steps show how I built a robust, automated, and scala
 This approach delivers a modern, cloud-native CI/CD solution that maximizes automation, security, and developer productivity.
 
 ---
-
 *This README is a work in progress. More information will be added as the project develops.* 
+
