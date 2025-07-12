@@ -6,6 +6,42 @@ A collection of tools and utilities for Continuous Integration and Jenkins autom
 
 This repository contains various tools, scripts, and configurations for CI/CD pipelines and Jenkins automation.
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Project Structure & My Approach](#project-structure--my-approach)
+- [Current Scenario](#current-scenario)
+- [Problem: Issues with Current Situation](#problem-issues-with-current-situation)
+- [Solution: Continuous Integration](#solution-continuous-integration)
+- [Process: Continuous Integration](#process-continuous-integration)
+- [Benefits of CI Pipeline](#benefits-of-ci-pipeline)
+- [Tools Used](#tools-used)
+- [Objectives and Goals](#objectives-and-goals)
+- [Architecture](#architecture)
+- [Flow of Execution (My Steps)](#flow-of-execution-my-steps)
+- [Deployment Steps Followed](#deployment-steps-followed)
+  - [Phase 1: AWS Infrastructure Setup](#phase-1-aws-infrastructure-setup)
+  - [Phase 2: Jenkins Server Deployment](#phase-2-jenkins-server-deployment)
+  - [Phase 3: Nexus Server Deployment](#phase-3-nexus-server-deployment)
+  - [Phase 4: SonarQube Server Deployment](#phase-4-sonarqube-server-deployment)
+  - [Phase 5: Jenkins and Slack Integration](#phase-5-jenkins-and-slack-integration)
+  - [Phase 6: Multi-Stage Jenkins Pipeline with Upstream/Downstream Chaining](#phase-6-multi-stage-jenkins-pipeline-with-upstreamdownstream-chaining)
+  - [Phase 7: Automated Code Style and Static Analysis with Checkstyle & Violations](#phase-7-automated-code-style-and-static-analysis-with-checkstyle--violations)
+  - [Phase 8: Troubleshooting & Best Practices](#phase-8-troubleshooting--best-practices)
+  - [Phase 9: Verification & Testing](#phase-9-verification--testing)
+  - [Phase 10: Security & Maintenance](#phase-10-security--maintenance)
+  - [Phase 11: SonarQube Troubleshooting & Common Issues](#phase-11-sonarqube-troubleshooting--common-issues)
+  - [Phase 12: Jenkins Build Pipeline Visualization](#phase-12-jenkins-build-pipeline-visualization)
+- [Current Status](#current-status)
+- [Next Steps](#next-steps)
+- [Deployment Guide](#deployment-guide)
+- [Final Notes](#final-notes)
+
+## Overview
+
+This repository contains various tools, scripts, and configurations for CI/CD pipelines and Jenkins automation.
+
 
 ### Prerequisites
 
@@ -176,7 +212,7 @@ I created three security groups with appropriate rules:
 - **Instance Type**: t2.micro (upgraded to t3.medium for better performance)
 - **Security Group**: vprofile-jenkins-sg
 - **Key Pair**: ci-vprofile-key
-- **User Data**: Used `userdata/jenkins-setup.sh`
+- **User Data**: Used [`userdata/jenkins-setup.sh`](userdata/jenkins-setup.sh)
 
 #### 2.2 Jenkins Installation & Configuration
 I encountered and resolved several issues:
@@ -213,7 +249,7 @@ I encountered and resolved several issues:
 - **Instance Type**: t2.medium
 - **Security Group**: vprofile-nexus-sg
 - **Key Pair**: ci-vprofile-key
-- **User Data**: Used `userdata/nexus-setup.sh`
+- **User Data**: Used [`userdata/nexus-setup.sh`](userdata/nexus-setup.sh)
 
 #### 3.2 Nexus Installation Challenges & Resolution
 
@@ -293,7 +329,7 @@ I encountered and resolved several issues:
 - **Instance Type**: t2.large
 - **Security Group**: Sonar-sg-vprofile
 - **Key Pair**: ci-vprofile-key
-- **User Data**: Used `userdata/sonar-setup.sh`
+- **User Data**: Used [`userdata/sonar-setup.sh`](userdata/sonar-setup.sh)
 
 #### 4.2 SonarQube Configuration
 - PostgreSQL database setup
@@ -313,16 +349,61 @@ I encountered and resolved several issues:
 
 This integration ensures my team receives real-time updates on build status directly in Slack, improving collaboration and response time.
 
-### Phase 5: Troubleshooting & Best Practices
+### Phase 6: Multi-Stage Jenkins Pipeline with Upstream/Downstream Chaining
 
-#### 5.1 SSH Connection Issues
+#### 6.1 Pipeline Structure
+- I implemented a multi-stage Jenkins pipeline to automate the build, test, integration test, and code analysis workflow.
+- The pipeline consists of four jobs:
+  - **Build1**: The initial build job that compiles and packages the application.
+  - **Test**: Triggered automatically after Build1 completes. Runs unit and integration tests.
+  - **Integration Test**: Triggered after the Test job completes. Runs additional integration or system-level tests.
+  - **Code-Analysis**: Triggered after Integration Test completes. Runs static code analysis (Checkstyle, Violations) to enforce code quality standards.
+
+#### 6.2 Upstream and Downstream Relationships
+- **Build1** is the upstream project for **Test**.
+- **Test** is the downstream project of Build1 and the upstream project for **Integration Test**.
+- **Integration Test** is the downstream project of Test and the upstream project for **Code-Analysis**.
+- **Code-Analysis** is the final downstream project, ensuring code quality checks are performed after all tests pass.
+
+#### 6.3 Benefits
+- **Automated Quality Gates**: Code must pass build, test, integration, and static analysis before being considered ready for deployment.
+- **Traceability**: Jenkins provides permalinks and build history, making it easy to track which builds triggered which tests and analysis steps.
+- **Best Practice**: This mirrors CI/CD pipelines used in top tech companies, demonstrating best practices for DevOps, data infrastructure, and software engineering roles.
+
+### Phase 7: Automated Code Style and Static Analysis with Checkstyle & Violations
+
+#### 7.1 Jenkins Plugin Setup
+- I installed the **Checkstyle** and **Violations** plugins in Jenkins to enforce code quality and style standards.
+
+#### 7.2 Project Configuration
+- I added the Maven Checkstyle plugin to my `pom.xml` to automatically analyze code style during the build process.
+- I used a `checkstyle.xml` rules file to define the coding standards for the project.
+- The build generates Checkstyle reports in `target/reports/checkstyle-result.xml`.
+
+#### 7.3 Jenkins Job Integration
+- In my Jenkins job, I added a **Publish Checkstyle analysis results** post-build action.
+- I configured it to use the generated report at `target/reports/checkstyle-result.xml`.
+- After each build, Jenkins displays a summary of code style issues and trends directly in the job UI.
+
+#### 7.4 Benefits
+- **Automated code style enforcement**: Ensures consistent, readable, and maintainable codebase.
+- **Immediate feedback**: Developers see issues as soon as they push code.
+- **Improved code quality**: Integrates static analysis into the CI/CD pipeline for early detection of issues.
+
+---
+
+This setup showcases my ability to design and implement robust, automated pipelines that ensure code quality and reliability at every stage.
+
+### Phase 8: Troubleshooting & Best Practices
+
+#### 8.1 SSH Connection Issues
 - **Problem**: Permission denied errors
 - **Solutions Applied**:
   - Verified key permissions: `chmod 600 ci-vprofile-key.pem`
   - Confirmed correct usernames (ubuntu for Ubuntu, ec2-user for CentOS/Amazon Linux)
   - Checked security group rules for SSH access
 
-#### 5.2 Service Startup Issues
+#### 8.2 Service Startup Issues
 - **Problem**: Services failing to start
 - **Solutions Applied**:
   - Checked system logs: `journalctl -xeu service-name`
@@ -330,16 +411,20 @@ This integration ensures my team receives real-time updates on build status dire
   - Confirmed disk space availability
   - Validated file permissions and ownership
 
-#### 5.3 Network Access Issues
+#### 8.3 Network Access Issues
 - **Problem**: Web interfaces not accessible
 - **Solutions Applied**:
   - Verified security group rules
   - Checked firewall configurations (UFW)
   - Confirmed service binding to correct interfaces
 
-### Phase 6: Verification & Testing
+#### 8.4 JaCoCo and Java 17 Compatibility Issue
+- **Problem:** During test execution, I encountered errors like `Unsupported class file major version 61` and `Error while instrumenting ...` from JaCoCo. This was because the project was using Java 17, but the JaCoCo Maven plugin version was too old (0.8.4) and did not support Java 17.
+- **Solution:** I upgraded the JaCoCo Maven plugin to version 0.8.8 in the `pom.xml`, which resolved the error and allowed code coverage to work with Java 17.
 
-#### 6.1 Service Status Verification
+### Phase 9: Verification & Testing
+
+#### 9.1 Service Status Verification
 ```bash
 # Jenkins
 sudo systemctl status jenkins
@@ -354,7 +439,7 @@ sudo systemctl status sonarqube
 curl -I http://localhost:9000
 ```
 
-#### 6.2 Log Monitoring
+#### 9.2 Log Monitoring
 ```bash
 # Jenkins logs
 sudo tail -f /var/log/jenkins/jenkins.log
@@ -366,18 +451,64 @@ sudo tail -f /opt/sonatype-work/nexus3/log/nexus.log
 sudo tail -f /opt/sonarqube/logs/sonar.log
 ```
 
-### Phase 7: Security & Maintenance
+### Phase 10: Security & Maintenance
 
-#### 7.1 Security Hardening
+#### 10.1 Security Hardening
 - Updated system packages regularly
 - Configured UFW firewall rules
 - Implemented proper file permissions
 - Used dedicated service users (nexus, sonarqube)
 
-#### 7.2 Backup Strategy
+#### 10.2 Backup Strategy
 - Documented configuration files
 - Created userdata scripts for reproducible deployments
 - Stored important credentials securely
+
+### Phase 11: SonarQube Troubleshooting & Common Issues
+
+#### 11.1 Database Authentication Failure
+- **Problem:** SonarQube fails to start with `FATAL: password authentication failed for user "sonar"` in the logs.
+- **Solution:**
+  1. Reset the PostgreSQL password for the `sonar` user:
+     ```bash
+     sudo -u postgres psql
+     ALTER USER sonar WITH PASSWORD 'YourStrongPassword';
+     \q
+     ```
+  2. Update `/opt/sonarqube/conf/sonar.properties` to match the new password:
+     ```
+     sonar.jdbc.password=YourStrongPassword
+     ```
+  3. Restart SonarQube:
+     ```bash
+     sudo systemctl restart sonarqube
+     ```
+
+#### 11.2 SonarQube Not Listening on Port 9000 / Connection Refused
+- **Problem:** Browser shows `ERR_CONNECTION_REFUSED` or nothing is listening on port 9000.
+- **Solution:**
+  - Check if SonarQube is running:
+    ```bash
+    sudo systemctl status sonarqube
+    sudo ss -tulnp | grep 9000
+    ```
+  - Check logs for errors:
+    ```bash
+    sudo tail -n 50 /opt/sonarqube/logs/sonar.log
+    sudo tail -n 50 /opt/sonarqube/logs/web.log
+    ```
+  - Ensure your AWS security group allows inbound TCP on port 9000 from your IP.
+  - If using UFW, allow port 9000:
+    ```bash
+    sudo ufw allow 9000/tcp
+    ```
+
+#### 11.3 General Tips
+- Always check SonarQube logs in `/opt/sonarqube/logs/` for detailed error messages.
+- Ensure the database is running and accessible from the SonarQube server.
+- Make sure system limits and Java version meet SonarQube requirements.
+
+---
 
 ### Current Status
 
@@ -498,4 +629,35 @@ tail -f /var/log/sonarqube-setup.log
 
 #### 3. Monitoring
 - [ ] Set up CloudWatch monitoring
+
+### Phase 12: Jenkins Build Pipeline Visualization
+
+#### 12.1 Pipeline Stages
+- My Jenkins pipeline is visualized using the Build Pipeline plugin, showing each stage of the CI/CD process:
+  1. **Build**: Compiles and packages the application.
+  2. **Test**: Runs unit and integration tests to ensure code quality.
+  3. **Integration Test**: Performs additional system-level or integration tests.
+  4. **Code Analysis**: Runs static code analysis tools (e.g., Checkstyle, Violations).
+  5. **SonarScanner-CodeAnalysis**: Executes SonarQube code quality and coverage analysis.
+  6. **Deploy-to-Nexus**: Uploads build artifacts to the Nexus repository for versioned storage and sharing.
+
+#### 12.2 Benefits of Pipeline Visualization
+- **Clarity**: Provides a clear, visual representation of the entire CI/CD workflow.
+- **Traceability**: Makes it easy to track the status and results of each stage for every build.
+- **Quality Gates**: Ensures code passes through all required checks before deployment.
+- **Best Practices**: Mirrors the robust, multi-stage pipelines used in top tech companies for DevOps and data engineering.
+
+#### 12.3 How to Set Up
+- I used the Jenkins Build Pipeline plugin to create this visualization.
+- Each job is configured as an upstream or downstream project, forming a chain from build to deployment.
+- This setup helps teams quickly identify issues, monitor progress, and maintain high code quality standards.
+
+---
+
+### Final Notes
+
+- **Shutdown Reminder:** After completing all CI/CD and infrastructure tasks, I made sure to shut down all EC2 instances in AWS to avoid unnecessary costs.
+- **Privacy Notice:** I did not upload screenshots of my Jenkins, Nexus, or SonarQube server dashboards to this repository in order to protect sensitive information and maintain privacy.
+
+---
 
