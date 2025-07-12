@@ -1,30 +1,35 @@
 #!/bin/bash
-set -e  # Exit immediately if a command exits with a non-zero status
+set -e
+
+# Log all output for troubleshooting
+exec > >(tee /var/log/jenkins-userdata.log|logger -t user-data -s 2>/dev/console) 2>&1
 
 # Update package list
-sudo apt update
+apt-get update -y
 
-# Install Java (OpenJDK 11) and Maven
-sudo apt install -y openjdk-11-jdk maven
+# Install Java 11
+apt-get install -y openjdk-11-jdk
 
 # Add Jenkins repository key and source
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-# Update package list again and install Jenkins
-sudo apt-get update
-sudo apt-get install -y jenkins
+# Update package list again
+apt-get update -y
+
+# Install Jenkins
+apt-get install -y jenkins
 
 # Start and enable Jenkins service
-sudo systemctl start jenkins
-sudo systemctl enable jenkins
+systemctl enable jenkins
+systemctl start jenkins
 
-# (Optional) Open Jenkins port 8080 if UFW is enabled
-if sudo ufw status | grep -q 'Status: active'; then
-  sudo ufw allow 8080/tcp
-  sudo ufw reload
+# Open port 8080 if UFW is enabled
+if command -v ufw >/dev/null && ufw status | grep -q 'Status: active'; then
+  ufw allow 8080/tcp
+  ufw reload
 fi
 
-# Print Jenkins initial admin password location
+# Print initial admin password location
 echo "Jenkins installed. To get the initial admin password, run:"
 echo "sudo cat /var/lib/jenkins/secrets/initialAdminPassword"
