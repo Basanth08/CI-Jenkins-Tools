@@ -124,11 +124,42 @@ Continuous Integration (CI) is a development practice where developers integrate
 
 ## Architecture
 
-The following diagram illustrates the CI/CD pipeline architecture used in this project:
+The following diagrams illustrate the CI/CD pipeline architecture and final outcome of this project:
 
+### Overall Architecture
 ![CI/CD Architecture](./Diagrams/architecture.png)
 
 This architecture covers the flow from code commit to build, test, code analysis, artifact packaging, repository upload, and notifications.
+
+### Final Outcome & Results
+![Final Outcome](./Diagrams/FinalOutcome.png)
+
+The FinalOutcome.png diagram showcases the complete, operational CI/CD infrastructure I built, demonstrating:
+
+**Infrastructure Components:**
+- **Jenkins Server** (Ubuntu 24.04 LTS, t3.medium): Pipeline orchestration and automation
+- **Nexus Server** (CentOS Stream 9, t2.medium): Artifact repository management
+- **SonarQube Server** (Ubuntu 24.04 LTS, t2.large): Code quality analysis and reporting
+
+**Pipeline Flow:**
+1. **Code Commit** → GitHub repository triggers webhook
+2. **Jenkins Build** → Compiles and packages the application
+3. **Automated Testing** → Unit and integration tests execution
+4. **Code Analysis** → Checkstyle and static analysis
+5. **SonarQube Analysis** → Code quality, coverage, and security scanning
+6. **Artifact Storage** → Nexus repository for versioned artifact management
+7. **Notifications** → Slack integration for real-time status updates
+
+**Key Achievements:**
+- ✅ **Multi-stage Pipeline**: Build → Test → Integration Test → Code Analysis → SonarScanner → Deploy-to-Nexus
+- ✅ **Automated Quality Gates**: Code must pass all stages before deployment
+- ✅ **Real-time Monitoring**: Slack notifications for build status
+- ✅ **Artifact Management**: Centralized storage in Nexus with proper versioning
+- ✅ **Code Quality**: Continuous analysis with SonarQube for maintainability
+- ✅ **Infrastructure as Code**: Automated deployment using userdata scripts
+- ✅ **Security**: Proper security groups, service isolation, and access controls
+
+This diagram represents a production-ready CI/CD pipeline that demonstrates enterprise-level DevOps practices, suitable for showcasing to recruiters or as a portfolio piece.
 
 ## Flow of Execution (My Steps)
 
