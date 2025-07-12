@@ -301,6 +301,18 @@ I encountered and resolved several issues:
 - System limits configuration
 - Service creation and management
 
+### Phase 5: Jenkins and Slack Integration
+
+#### 5.1 Slack Notification Setup
+- I installed the **Slack Notification** plugin in Jenkins via Manage Jenkins > Manage Plugins.
+- I created a new **Incoming Webhook** in my Slack workspace and selected the desired channel for notifications.
+- I copied the generated **Webhook URL** from Slack.
+- In Jenkins, I went to **Manage Jenkins > Configure System**, scrolled to the Slack section, and entered the workspace and webhook details.
+- I configured my Jenkins jobs to send notifications to Slack by adding a **Slack Notifications** post-build action, choosing when to notify (e.g., on success, failure, etc.).
+- I tested the integration by running a build and verified that notifications appeared in the Slack channel.
+
+This integration ensures my team receives real-time updates on build status directly in Slack, improving collaboration and response time.
+
 ### Phase 5: Troubleshooting & Best Practices
 
 #### 5.1 SSH Connection Issues
