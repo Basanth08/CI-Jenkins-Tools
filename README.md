@@ -495,6 +495,74 @@ sudo tail -f /opt/sonarqube/logs/sonar.log
 - Created userdata scripts for reproducible deployments
 - Stored important credentials securely
 
+### Data Backup of CI/CD Stack
+
+To ensure recoverability and business continuity, follow these steps to back up your CI/CD stack (Jenkins, Nexus, SonarQube) to AWS S3:
+
+#### 1. Prerequisites
+- Create an S3 bucket for backups
+- Create an IAM role with S3 access permissions
+- Attach the IAM role to all your EC2 instances
+
+#### 2. Jenkins Backup
+- Login to the Jenkins instance
+- Shutdown Jenkins service:
+  ```bash
+  sudo systemctl stop jenkins
+  ```
+- Clean up unnecessary data from Jenkins home
+- Archive the Jenkins data directory:
+  ```bash
+  tar -czvf jenkins-backup.tar.gz /var/lib/jenkins
+  ```
+- Install AWS CLI if not already installed
+- Copy the Jenkins archive to the S3 bucket:
+  ```bash
+  aws s3 cp jenkins-backup.tar.gz s3://<your-s3-bucket>/
+  ```
+
+#### 3. Nexus Backup
+- Login to the Nexus server
+- Shutdown Nexus service:
+  ```bash
+  sudo systemctl stop nexus
+  ```
+- Archive the Nexus data directory:
+  ```bash
+  tar -czvf nexus-backup.tar.gz /opt/nexus
+  ```
+- Install and configure AWS CLI if needed
+- Copy the Nexus archive to the same S3 bucket:
+  ```bash
+  aws s3 cp nexus-backup.tar.gz s3://<your-s3-bucket>/
+  ```
+
+#### 4. SonarQube & PostgreSQL Backup
+- Login to the SonarQube server
+- Shutdown SonarQube service:
+  ```bash
+  sudo systemctl stop sonarqube
+  ```
+- Archive the SonarQube data directory:
+  ```bash
+  tar -czvf sonarqube-backup.tar.gz /opt/sonarqube
+  ```
+- Archive the PostgreSQL data directory:
+  ```bash
+  tar -czvf postgresql-backup.tar.gz /var/lib/postgresql
+  ```
+- Install and configure AWS CLI if needed
+- Copy both SonarQube and PostgreSQL archives to the same S3 bucket:
+  ```bash
+  aws s3 cp sonarqube-backup.tar.gz s3://<your-s3-bucket>/
+  aws s3 cp postgresql-backup.tar.gz s3://<your-s3-bucket>/
+  ```
+
+#### 5. Record Keeping
+- Note down the following for future restores:
+  - S3 bucket name
+  - Archive file names
+
 ### Phase 11: SonarQube Troubleshooting & Common Issues
 
 #### 11.1 Database Authentication Failure
